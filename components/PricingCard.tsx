@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Package } from '../types';
+import { Package } from '../types.ts';
 import { Check, X, Star } from 'lucide-react';
 
 interface PricingCardProps {
