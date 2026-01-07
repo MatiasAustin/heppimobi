@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { LandingPageContent } from '../types.ts';
-import { Check, Settings, Layout, BarChart3, Image as ImageIcon, Palette, List, MessageSquare, Info, Zap, Save, LogOut, Download, Copy, X } from 'lucide-react';
+import { Check, Settings, Layout, BarChart3, Image as ImageIcon, Palette, List, MessageSquare, Info, Zap, Save, LogOut, Download, Copy, X, Cloud } from 'lucide-react';
 
 // Sub-components
 import { AdminHero } from './admin/AdminHero.tsx';
@@ -275,6 +275,31 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
           {activeTab === 'dashboard' && (
             <div className="space-y-12 animate-in fade-in duration-300">
+              <section className="bg-blue-600 p-8 rounded-[2.5rem] border border-blue-500 shadow-2xl shadow-blue-200 text-white relative overflow-hidden group">
+                <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-black mb-4 flex items-center gap-3">
+                    <Cloud className="w-8 h-8 text-white animate-pulse" />
+                    Cloud Synchronization
+                  </h3>
+                  <p className="text-sm text-blue-100 mb-8 font-medium leading-relaxed max-w-2xl">
+                    Data Anda saat ini tersimpan di browser ini. Agar perubahan muncul secara publik dan aman di cloud, silakan tekan tombol di bawah untuk sinkronisasi ke database Supabase.
+                  </p>
+                  <button
+                    onClick={() => {
+                      import('../lib/supabase.ts').then(m => {
+                        m.saveRemoteContent(content).then(() => {
+                          alert("🎉 Data berhasil disinkronkan ke Cloud!");
+                        });
+                      });
+                    }}
+                    className="bg-white text-blue-600 px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95"
+                  >
+                    🚀 Push to Cloud Database
+                  </button>
+                </div>
+              </section>
+
               {/* Mobile Export Button */}
               <div className="md:hidden">
                 <button
@@ -405,28 +430,6 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
           {activeTab === 'settings' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-              <section className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200">
-                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                  <Download className="w-6 h-6 text-blue-500" />
-                  Cloud Synchronization
-                </h3>
-                <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
-                  Data Anda tersimpan secara lokal dan otomatis disinkronkan ke Supabase. Jika cloud masih kosong, Anda bisa memicu sinkronisasi manual ke database.
-                </p>
-                <button
-                  onClick={() => {
-                    import('../lib/supabase.ts').then(m => {
-                      m.saveRemoteContent(content).then(() => {
-                        alert("🎉 Data berhasil disinkronkan ke Cloud!");
-                      });
-                    });
-                  }}
-                  className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
-                >
-                  Push to Cloud Database
-                </button>
-              </section>
-
               <InputField label="Master Password" value={content.adminConfig.password} onChange={(v) => updateSection('adminConfig', { password: v })} />
               <SectionToggle
                 label="Show Admin Access Button"
