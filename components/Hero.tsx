@@ -90,7 +90,7 @@ const Hero: React.FC<HeroProps> = (props) => {
               <img src={props.imageUrl} alt="Headlight" className="w-full h-auto rounded-[2.5rem] md:rounded-[4rem] shadow-2xl transition-transform hover:scale-[1.01] duration-700" />
 
               {/* Floating Badges - Adjusted positions to be less intrusive */}
-              <div className="absolute bottom-2 -left-6 md:-bottom-20 md:-left-16 glass-card p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-white/50 max-w-[130px] md:max-w-[180px] animate-bounce-slow">
+              <div className="absolute -bottom-[3.125rem] -left-6 md:-bottom-20 md:-left-16 glass-card p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-white/50 max-w-[130px] md:max-w-[180px] animate-bounce-slow">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-white mb-3 md:mb-4 shadow-lg" style={{ backgroundColor: props.accentColor }}>
                   <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
