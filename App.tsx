@@ -9,7 +9,7 @@ import { Lock, LogOut, Info } from 'lucide-react';
 import { fetchRemoteContent, saveRemoteContent } from './lib/supabase.ts';
 
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.4.0';
 
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
@@ -28,25 +28,41 @@ const App: React.FC = () => {
       try {
         const remoteData = await fetchRemoteContent();
         const isDataValid = remoteData && remoteData.branding && remoteData.hero;
+        const savedVersion = localStorage.getItem('heppimobi_version');
+        const isNewVersion = savedVersion !== APP_VERSION;
 
         if (isDataValid) {
-          setContent(remoteData);
-          // Sync local storage with latest remote data
-          localStorage.setItem('heppimobi_content', JSON.stringify(remoteData));
+          if (isNewVersion) {
+            // Jika ada versi baru, kita ambil data remote tapi PAKSA update bagian yang kita baru saja perbarui di code
+            // Dalam hal ini: testimoni dan gallery
+            console.log(`🚀 New version ${APP_VERSION} detected. Merging updates...`);
+            const mergedData = {
+              ...remoteData,
+              testimonials: INITIAL_CONTENT.testimonials,
+              gallery: INITIAL_CONTENT.gallery
+            };
+            setContent(mergedData);
+            localStorage.setItem('heppimobi_content', JSON.stringify(mergedData));
+            localStorage.setItem('heppimobi_version', APP_VERSION);
+            // Push ke cloud supaya tersinkronasi otomatis
+            saveRemoteContent(mergedData);
+          } else {
+            setContent(remoteData);
+            localStorage.setItem('heppimobi_content', JSON.stringify(remoteData));
+          }
         } else {
           // Fallback to local if remote fails or empty/invalid
           const saved = localStorage.getItem('heppimobi_content');
-          const savedVersion = localStorage.getItem('heppimobi_version');
 
           let localContent = INITIAL_CONTENT;
-          if (saved && savedVersion === APP_VERSION) {
+          if (saved && !isNewVersion) {
             localContent = JSON.parse(saved);
           }
 
           setContent(localContent);
+          localStorage.setItem('heppimobi_version', APP_VERSION);
 
           // CRITICAL: Push local data to Supabase if remote was empty/invalid
-          // This initializes the cloud DB with our existing data
           console.log("☁️ Supabase empty/invalid. Initializing with local data...");
           saveRemoteContent(localContent);
         }
@@ -75,9 +91,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Simpan versi saat ini ke localStorage
-    localStorage.setItem('heppimobi_version', APP_VERSION);
-
     // Jangan hitung jika dalam mode admin, sudah ter-autentikasi, atau device ini pernah login admin
     const isPersistentAdmin = localStorage.getItem('heppimobi_is_admin') === 'true';
     if (isAdminMode || isAuthenticated || isPersistentAdmin) return;
