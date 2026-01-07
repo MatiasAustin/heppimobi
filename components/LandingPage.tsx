@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { LandingPageContent } from '../types.ts';
 import PricingCard from './PricingCard.tsx';
-import { Shield, Zap, Smile, ArrowRight, MessageCircle, Star, CheckCircle2, Menu, X, Search, Settings, ShieldCheck, ClipboardCheck } from 'lucide-react';
+import { Shield, Zap, Smile, ArrowRight, MessageCircle, Star, CheckCircle2, Menu, X, Search, Settings, ShieldCheck, ClipboardCheck, Award, Users } from 'lucide-react';
 
 interface LandingPageProps {
   content: LandingPageContent;
@@ -106,10 +106,75 @@ const LandingPage: React.FC<LandingPageProps> = ({ content }) => {
                     {content.hero.ctaText}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
+                  <div className="flex items-center gap-4 px-6 py-4">
+                    <div className="flex -space-x-3">
+                        {[1, 2, 3].map(i => <img key={i} src={`https://i.pravatar.cc/100?u=${i + 10}`} className="w-8 h-8 md:w-10 md:h-10 rounded-full border-4 border-white shadow-sm" alt="User" />)}
+                    </div>
+                    <div className="text-left">
+                      <div className="text-[10px] md:text-xs font-black text-slate-900">2,500+ Happy Clients</div>
+                      <div className="flex text-amber-400 gap-0.5">
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Trusted Badges */}
+                <div className="mt-12 pt-8 border-t border-slate-50 flex flex-wrap justify-center lg:justify-start gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Original Parts Safe</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Award className="w-5 h-5" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Certified Specialist</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Community Choice</span>
+                    </div>
                 </div>
               </div>
+
               <div className="flex-1 relative w-full lg:max-w-xl">
-                <img src={content.hero.imageUrl} alt="Headlight" className="w-full h-auto rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl" />
+                <div className="relative z-10">
+                    <img src={content.hero.imageUrl} alt="Headlight" className="w-full h-auto rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl transition-transform hover:scale-[1.02] duration-700" />
+                    
+                    {/* Floating Testimonial/Badge Card 1 */}
+                    <div className="absolute -bottom-6 -left-6 md:-bottom-10 md:-left-10 glass-card p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-white/50 max-w-[150px] md:max-w-[200px] animate-bounce-slow">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-white mb-3 md:mb-4 shadow-lg" style={{ backgroundColor: accentColor }}>
+                            <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+                        </div>
+                        <p className="text-xs md:text-sm font-black text-slate-900 leading-tight">Bergaransi Hingga 1 Tahun</p>
+                    </div>
+
+                    {/* Floating Rating Card 2 */}
+                    <div className="absolute top-10 -right-6 md:top-16 md:-right-10 glass-card p-4 md:p-5 rounded-[2rem] shadow-2xl border-white/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="flex text-amber-400">
+                                <Star className="w-3 h-3 fill-current" />
+                                <Star className="w-3 h-3 fill-current" />
+                                <Star className="w-3 h-3 fill-current" />
+                                <Star className="w-3 h-3 fill-current" />
+                                <Star className="w-3 h-3 fill-current" />
+                            </div>
+                            <span className="text-[10px] font-black text-slate-900">4.9/5.0</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 italic">"Hasilnya luar biasa, lampu <br/> kembali seperti baru!"</p>
+                    </div>
+
+                    {/* Floating Trusted Badge 3 */}
+                    <div className="absolute -top-6 left-10 md:-top-10 md:left-20 glass-card px-4 py-3 rounded-full shadow-xl border-white/50 flex items-center gap-2 animate-bounce-slow" style={{ animationDelay: '1s' }}>
+                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                            <Shield className="w-3 h-3 text-green-600 fill-current" />
+                        </div>
+                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Trusted Specialist</span>
+                    </div>
+                </div>
               </div>
             </div>
           </div>
