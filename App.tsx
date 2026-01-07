@@ -9,7 +9,7 @@ import { Lock, LogOut, Info } from 'lucide-react';
 import { fetchRemoteContent, saveRemoteContent } from './lib/supabase.ts';
 
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
@@ -29,7 +29,10 @@ const App: React.FC = () => {
         const remoteData = await fetchRemoteContent();
         const isDataValid = remoteData && remoteData.branding && remoteData.hero;
         const savedVersion = localStorage.getItem('heppimobi_version');
-        const isNewVersion = savedVersion !== APP_VERSION;
+
+        // FORCE migration if version is old OR if data is incomplete (e.g. only 3 testimonials)
+        const hasEnoughTestimonials = remoteData?.testimonials?.items?.length >= 6;
+        const isNewVersion = savedVersion !== APP_VERSION || !hasEnoughTestimonials;
 
         if (isDataValid) {
           if (isNewVersion) {
