@@ -52,7 +52,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ content }) => {
                     <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
                         {sectionTitle}
                     </h2>
-                    <p className="text-slate-500 max-w-2xl mx-auto font-medium text-lg">
+                    <p className="text-slate-500 max-w-2xl mx-auto font-medium text-sm md:text-base">
                         {sectionSubtitle}
                     </p>
                 </div>

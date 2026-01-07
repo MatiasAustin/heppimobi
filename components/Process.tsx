@@ -24,7 +24,7 @@ const Process: React.FC<ProcessProps> = ({ sectionTitle, sectionSubtitle, steps,
                 {sectionTitle}
               </h2>
             </div>
-            <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-md">
+            <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed max-w-md">
               {sectionSubtitle}
             </p>
           </div>
@@ -48,7 +48,7 @@ const Process: React.FC<ProcessProps> = ({ sectionTitle, sectionSubtitle, steps,
                       <h4 className="text-lg md:text-xl font-black text-slate-900 tracking-tight group-hover:text-red-600 transition-colors">
                         {step.title}
                       </h4>
-                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-medium max-w-lg">
+                      <p className="text-slate-500 text-sm md:text-base leading-relaxed font-medium max-w-lg">
                         {step.description}
                       </p>
                     </div>
