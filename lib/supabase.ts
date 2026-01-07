@@ -25,12 +25,12 @@ export const fetchRemoteContent = async (): Promise<LandingPageContent | null> =
 
         if (error) {
             console.error('Error fetching remote content:', error);
-            return null;
+            throw error; // Throw so caller knows it's a network error, not "no data"
         }
-        return data?.content as LandingPageContent;
+        return data?.content as LandingPageContent || null;
     } catch (err) {
         console.error('Remote fetch failed:', err);
-        return null;
+        throw err;
     }
 };
 
@@ -69,4 +69,26 @@ export const saveRemoteContent = async (content: LandingPageContent) => {
     } catch (err) {
         console.error('Remote save failed:', err);
     }
+};
+
+export const subscribeToContent = (onUpdate: (content: LandingPageContent) => void) => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
+
+    return supabase
+        .channel('site_content_changes')
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE', // We only care about updates to the existing content row
+                schema: 'public',
+                table: 'site_content'
+            },
+            (payload) => {
+                if (payload.new && payload.new.content) {
+                    console.log('🔄 Remote update received via real-time');
+                    onUpdate(payload.new.content as LandingPageContent);
+                }
+            }
+        )
+        .subscribe();
 };

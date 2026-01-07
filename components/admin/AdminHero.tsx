@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { LandingPageContent } from '../../types.ts';
 import { InputField, TextAreaField, ImageUploadBox } from './Shared.tsx';
-import { Wand2, Sparkles, Loader2, AlertCircle, X, ExternalLink } from 'lucide-react';
+import { Wand2, Sparkles, Loader2, AlertCircle, X, ExternalLink, Scissors } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
+import { CropModal } from './CropModal.tsx';
 
 interface AdminHeroProps {
   content: LandingPageContent['hero'];
@@ -15,6 +16,7 @@ interface AdminHeroProps {
 export const AdminHero: React.FC<AdminHeroProps> = ({ content, updateHero, handleFileUpload, isCompressing }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [errorDetails, setErrorDetails] = useState({ title: '', message: '', code: '' });
   // Default prompt
   const [prompt, setPrompt] = useState("A professional automotive specialist applying nano ceramic liquid to the crystal clear headlights of a modern silver Porsche 911. Hyper-realistic, 8k resolution, cinematic lighting, dramatic close-up of the headlight reflection, luxurious garage setting, 16:9 aspect ratio.");
@@ -212,6 +214,15 @@ export const AdminHero: React.FC<AdminHeroProps> = ({ content, updateHero, handl
         </div>
       )}
 
+      {/* CROP MODAL */}
+      <CropModal
+        isOpen={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        image={content.imageUrl}
+        onCropComplete={(croppedImage) => updateHero({ imageUrl: croppedImage })}
+        aspect={16 / 9}
+      />
+
       {/* AI GENERATOR SECTION - MOVED TO TOP FOR VISIBILITY */}
       <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 md:p-8 rounded-[2rem] border border-slate-200 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl rounded-full pointer-events-none"></div>
@@ -261,14 +272,26 @@ export const AdminHero: React.FC<AdminHeroProps> = ({ content, updateHero, handl
         <TextAreaField label="Subheadline" value={content.subheadline} onChange={(v) => updateHero({ subheadline: v })} />
         <InputField label="CTA Button Text" value={content.ctaText} onChange={(v) => updateHero({ ctaText: v })} />
 
-        <div className="space-y-2 pt-4">
-          <ImageUploadBox
-            label="Current Hero Image"
-            value={content.imageUrl}
-            onUpload={(e: any) => handleFileUpload(e, 'hero.imageUrl')}
-            isCompressing={isCompressing}
-            fullHeight
-          />
+        <div className="space-y-4 pt-4">
+          <div className="relative group/image">
+            <ImageUploadBox
+              label="Current Hero Image"
+              value={content.imageUrl}
+              onUpload={(e: any) => handleFileUpload(e, 'hero.imageUrl')}
+              isCompressing={isCompressing}
+              fullHeight
+            />
+
+            {content.imageUrl && (
+              <button
+                onClick={() => setIsCropModalOpen(true)}
+                className="absolute top-4 right-4 bg-white/90 backdrop-blur shadow-xl border border-slate-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all group-hover/image:scale-105 active:scale-95"
+              >
+                <Scissors className="w-3.5 h-3.5" />
+                Crop & Repose
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

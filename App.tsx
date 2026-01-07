@@ -6,7 +6,7 @@ import { LandingPageContent } from './types.ts';
 import { INITIAL_CONTENT } from './constants.ts';
 import { Lock, LogOut, Info } from 'lucide-react';
 
-import { fetchRemoteContent, saveRemoteContent } from './lib/supabase.ts';
+import { fetchRemoteContent, saveRemoteContent, subscribeToContent, supabase } from './lib/supabase.ts';
 
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
 const APP_VERSION = '1.5.0';
@@ -14,16 +14,26 @@ const APP_VERSION = '1.5.0';
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasRemoteData, setHasRemoteData] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  // Real-time Database Subscription
+  useEffect(() => {
+    const subscription = subscribeToContent((newContent) => {
+      setContent(newContent);
+      localStorage.setItem('heppimobi_content', JSON.stringify(newContent));
+      setHasRemoteData(true);
+    });
+
+    return () => {
+      if (subscription) supabase.removeChannel(subscription);
+    };
+  }, []);
 
   // Status sinkronisasi (remote vs local)
   useEffect(() => {
     const initData = async () => {
       setIsLoading(true);
-
-      // Fail-safe: pastikan loading berhenti setelah 3 detik apapun yang terjadi
-      const failSafe = setTimeout(() => {
-        setIsLoading(false);
-      }, 3000);
 
       try {
         const remoteData = await fetchRemoteContent();
@@ -35,9 +45,8 @@ const App: React.FC = () => {
         const isNewVersion = savedVersion !== APP_VERSION || !hasEnoughTestimonials;
 
         if (isDataValid) {
+          setHasRemoteData(true);
           if (isNewVersion) {
-            // Jika ada versi baru, kita ambil data remote tapi PAKSA update bagian yang kita baru saja perbarui di code
-            // Dalam hal ini: testimoni dan gallery
             console.log(`🚀 New version ${APP_VERSION} detected. Merging updates...`);
             const mergedData = {
               ...remoteData,
@@ -47,32 +56,28 @@ const App: React.FC = () => {
             setContent(mergedData);
             localStorage.setItem('heppimobi_content', JSON.stringify(mergedData));
             localStorage.setItem('heppimobi_version', APP_VERSION);
-            // Push ke cloud supaya tersinkronasi otomatis
             saveRemoteContent(mergedData);
           } else {
             setContent(remoteData);
             localStorage.setItem('heppimobi_content', JSON.stringify(remoteData));
           }
         } else {
-          // Fallback to local if remote fails or empty/invalid
-          const saved = localStorage.getItem('heppimobi_content');
-
-          let localContent = INITIAL_CONTENT;
-          if (saved && !isNewVersion) {
-            localContent = JSON.parse(saved);
-          }
-
-          setContent(localContent);
+          // If database exists but content is empty/invalid (First Time)
+          console.log("☁️ Supabase empty. Initializing with local data...");
+          setContent(INITIAL_CONTENT);
           localStorage.setItem('heppimobi_version', APP_VERSION);
-
-          // CRITICAL: Push local data to Supabase if remote was empty/invalid
-          console.log("☁️ Supabase empty/invalid. Initializing with local data...");
-          saveRemoteContent(localContent);
+          saveRemoteContent(INITIAL_CONTENT);
+          setHasRemoteData(true);
         }
       } catch (err) {
         console.error("Initial load failed", err);
+        setFetchError(true);
+        // On error, we load from localStorage but DO NOT push back to cloud
+        const saved = localStorage.getItem('heppimobi_content');
+        if (saved) {
+          setContent(JSON.parse(saved));
+        }
       } finally {
-        clearTimeout(failSafe);
         setIsLoading(false);
       }
     };
@@ -140,13 +145,15 @@ const App: React.FC = () => {
       }
     }
 
-    // Debounced remote save (only if changes happen)
-    const timer = setTimeout(() => {
-      saveRemoteContent(content);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [content, isLoading]);
+    // Debounced remote save (only if changes happen AND we are in a safe state)
+    // Safe state = we successfully loaded from remote OR we initialized an empty remote
+    if (hasRemoteData && !fetchError) {
+      const timer = setTimeout(() => {
+        saveRemoteContent(content);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [content, isLoading, hasRemoteData, fetchError]);
 
   const handleUpdateContent = (newContent: LandingPageContent) => {
     setContent(newContent);
