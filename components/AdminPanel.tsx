@@ -24,6 +24,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ content, onUpdate, onExit }) =>
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showExportModal, setShowExportModal] = useState(false);
   const [copyStatus, setCopyStatus] = useState(false);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'idle' | 'syncing' | 'synced'>('idle');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const updateSection = (section: keyof LandingPageContent, data: any) => {
@@ -279,23 +280,53 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
                 <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
                 <div className="relative z-10">
                   <h3 className="text-2xl font-black mb-4 flex items-center gap-3">
-                    <Cloud className="w-8 h-8 text-white animate-pulse" />
-                    Cloud Synchronization
+                    <Cloud className={`w-8 h-8 text-white ${cloudSyncStatus === 'syncing' ? 'animate-bounce' : cloudSyncStatus === 'synced' ? '' : 'animate-pulse'}`} />
+                    {cloudSyncStatus === 'synced' ? 'Cloud Synced' : 'Cloud Synchronization'}
                   </h3>
                   <p className="text-sm text-blue-100 mb-8 font-medium leading-relaxed max-w-2xl">
-                    Data Anda saat ini tersimpan di browser ini. Agar perubahan muncul secara publik dan aman di cloud, silakan tekan tombol di bawah untuk sinkronisasi ke database Supabase.
+                    {cloudSyncStatus === 'synced'
+                      ? "Mantap! Data Anda sekarang sudah sinkron sempurna dengan database Supabase dan sudah bisa diakses secara publik."
+                      : "Data Anda saat ini tersimpan di browser ini. Agar perubahan muncul secara publik dan aman di cloud, silakan tekan tombol di bawah untuk sinkronisasi ke database Supabase."}
                   </p>
+
+                  <div className="flex items-start gap-2 mb-6 p-3 bg-white/10 rounded-xl border border-white/20 max-w-xl">
+                    <Info className="w-4 h-4 text-blue-200 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-blue-100 leading-tight">
+                      <span className="font-black text-white uppercase tracking-wider block mb-1">Developer Notice</span>
+                      Tombol ini khusus untuk kebutuhan maintenance dan testing. Data akan dipaksa (*forced sync*) ke Supabase. Gunakan hanya jika Anda ingin memastikan data lokal tersinkron ke publik.
+                    </p>
+                  </div>
                   <button
                     onClick={() => {
+                      setCloudSyncStatus('syncing');
                       import('../lib/supabase.ts').then(m => {
                         m.saveRemoteContent(content).then(() => {
-                          alert("🎉 Data berhasil disinkronkan ke Cloud!");
+                          setCloudSyncStatus('synced');
+                          setTimeout(() => setCloudSyncStatus('idle'), 10000); // Reset after 10s
                         });
                       });
                     }}
-                    className="bg-white text-blue-600 px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95"
+                    disabled={cloudSyncStatus === 'syncing'}
+                    className={`px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center gap-3 ${cloudSyncStatus === 'synced'
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-white text-blue-600 hover:bg-slate-100'
+                      } ${cloudSyncStatus === 'syncing' ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    🚀 Push to Cloud Database
+                    {cloudSyncStatus === 'syncing' ? (
+                      <>
+                        <Zap className="w-5 h-5 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : cloudSyncStatus === 'synced' ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        Data is Live on Cloud
+                      </>
+                    ) : (
+                      <>
+                        🚀 Push to Cloud Database
+                      </>
+                    )}
                   </button>
                 </div>
               </section>

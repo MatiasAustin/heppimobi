@@ -22,6 +22,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ content }) => {
     <div className="min-h-screen bg-white selection:bg-red-100 overflow-x-hidden">
       <Navbar
         brandName={content.branding.brandName}
+        tagline={content.footer.tagline}
         logoUrl={content.branding.logoUrl}
         accentColor={accentColor}
         whatsappNumber={content.cta.whatsappNumber}
@@ -81,6 +82,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ content }) => {
 
       <Footer
         brandName={content.branding.brandName}
+        tagline={content.footer.tagline}
         contact={content.footer.contact}
         address={content.footer.address}
       />
