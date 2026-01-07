@@ -4,12 +4,22 @@ import LandingPage from './components/LandingPage.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import { LandingPageContent } from './types.ts';
 import { INITIAL_CONTENT } from './constants.ts';
-import { Lock, LogOut } from 'lucide-react';
+import { Lock, LogOut, Info } from 'lucide-react';
+
+// Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
+const APP_VERSION = '1.1.0'; 
 
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(() => {
     const saved = localStorage.getItem('heppimobi_content');
-    return saved ? JSON.parse(saved) : INITIAL_CONTENT;
+    const savedVersion = localStorage.getItem('heppimobi_version');
+    
+    // Jika versi berbeda atau tidak ada data tersimpan, gunakan INITIAL_CONTENT baru
+    if (saved && savedVersion === APP_VERSION) {
+      return JSON.parse(saved);
+    } else {
+      return INITIAL_CONTENT;
+    }
   });
 
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -27,6 +37,9 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Simpan versi saat ini ke localStorage
+    localStorage.setItem('heppimobi_version', APP_VERSION);
+    
     if (isAdminMode) return;
     const today = new Date().toISOString().split('T')[0];
     const isNewVisit = !sessionStorage.getItem('heppimobi_visited');
@@ -123,7 +136,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {(content.adminConfig.showAdminButton || isAuthenticated) && (
-        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2">
+        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 group">
           {isAuthenticated ? (
             <div className="flex flex-col gap-2">
               <button onClick={() => setIsAdminMode(!isAdminMode)} className="bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl hover:bg-red-600 transition-all">
@@ -134,9 +147,33 @@ const App: React.FC = () => {
               </button>
             </div>
           ) : (
-            <button onClick={() => setIsAdminMode(true)} className="w-12 h-12 bg-slate-900/10 hover:bg-slate-900 text-slate-400 hover:text-white rounded-full shadow-sm hover:shadow-xl transition-all flex items-center justify-center backdrop-blur">
-              <Lock className="w-5 h-5" />
-            </button>
+            <>
+              {/* Standout Warning Tooltip */}
+              <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none mb-1">
+                <div className="bg-white border border-red-100 shadow-2xl p-4 rounded-2xl md:rounded-[1.5rem] flex gap-3 items-start max-w-[240px]">
+                  <div className="bg-red-50 p-1.5 rounded-lg flex-shrink-0">
+                    <Info className="w-3.5 h-3.5 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-600 font-bold leading-relaxed">
+                      <span className="text-red-600 font-black uppercase tracking-widest block mb-0.5">Note:</span>
+                      Tombol ini terlihat publik. Sembunyikan di <span className="text-slate-900">Config</span> jika sudah tidak maintenance.
+                    </p>
+                  </div>
+                  {/* Arrow for tooltip */}
+                  <div className="absolute bottom-[-6px] right-5 w-3 h-3 bg-white border-r border-b border-red-100 rotate-45"></div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsAdminMode(true)} 
+                className="w-12 h-12 bg-slate-900/10 hover:bg-slate-900 text-slate-400 hover:text-white rounded-full shadow-sm hover:shadow-xl transition-all flex items-center justify-center backdrop-blur relative"
+              >
+                <Lock className="w-5 h-5" />
+                {/* Red Dot indicator that button is public */}
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+              </button>
+            </>
           )}
         </div>
       )}

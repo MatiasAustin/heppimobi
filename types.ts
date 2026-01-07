@@ -51,6 +51,11 @@ export interface LandingPageContent {
     ctaText: string;
     imageUrl: string;
     visible: boolean;
+    badgeWarranty: string;
+    badgeRating: string;
+    badgeTestimonial: string;
+    badgeTrust: string;
+    trustBadges: string[];
   };
   pricing: {
     sectionTitle: string;

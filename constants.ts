@@ -7,7 +7,7 @@ export const INITIAL_CONTENT: LandingPageContent = {
     showAdminButton: true,
   },
   branding: {
-    logoUrl: "", // Empty will use default icon
+    logoUrl: "", 
     faviconUrl: "",
     brandName: "Heppimobi",
     accentColor: "#E32636",
@@ -16,8 +16,14 @@ export const INITIAL_CONTENT: LandingPageContent = {
     headline: "Lampu Mobil Bening, Gak Pakai Ribet",
     subheadline: "Heppimobi adalah spesialis restorasi lampu mobil No.1. Kembalikan kejernihan lampu mobil Anda dengan teknologi Nano Burn & Ceramic Coating.",
     ctaText: "Booking Sekarang",
-    imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
+    // Menggunakan gambar placeholder proses detailing/coating yang berkualitas tinggi
+    imageUrl: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=1974&auto=format&fit=crop", 
     visible: true,
+    badgeWarranty: "Bergaransi Hingga 1 Tahun",
+    badgeRating: "4.9/5.0",
+    badgeTestimonial: "\"Hasilnya luar biasa, lampu kembali seperti baru!\"",
+    badgeTrust: "Trusted Specialist",
+    trustBadges: ["Original Parts Safe", "Certified Specialist", "Community Choice"]
   },
   pricing: {
     sectionTitle: "Pilih Paket Kejernihan",
