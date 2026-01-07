@@ -9,17 +9,25 @@ import { Lock, LogOut, Info } from 'lucide-react';
 import { fetchRemoteContent, saveRemoteContent, subscribeToContent, supabase } from './lib/supabase.ts';
 
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
   const [isLoading, setIsLoading] = useState(true);
   const [hasRemoteData, setHasRemoteData] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   // Real-time Database Subscription
   useEffect(() => {
     const subscription = subscribeToContent((newContent) => {
+      // PREVENT SYNC LOOP: If we are in admin mode, we are the source of truth.
+      // Do not let remote updates overwrite our local state while we are editing.
+      if (isAdminMode) {
+        console.log("☁️ Remote update ignored because Admin Mode is active.");
+        return;
+      }
+
       setContent(newContent);
       localStorage.setItem('heppimobi_content', JSON.stringify(newContent));
       setHasRemoteData(true);
@@ -28,7 +36,7 @@ const App: React.FC = () => {
     return () => {
       if (subscription) supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [isAdminMode]);
 
   // Status sinkronisasi (remote vs local)
   useEffect(() => {
@@ -40,9 +48,10 @@ const App: React.FC = () => {
         const isDataValid = remoteData && remoteData.branding && remoteData.hero;
         const savedVersion = localStorage.getItem('heppimobi_version');
 
-        // FORCE migration if version is old OR if data is incomplete (e.g. only 3 testimonials)
+        // FORCE migration if version is old OR if data is incomplete
         const hasEnoughTestimonials = remoteData?.testimonials?.items?.length >= 6;
-        const isNewVersion = savedVersion !== APP_VERSION || !hasEnoughTestimonials;
+        const hasNewSubtitles = remoteData?.features?.sectionSubtitle && remoteData?.process?.sectionSubtitle;
+        const isNewVersion = savedVersion !== APP_VERSION || !hasEnoughTestimonials || !hasNewSubtitles;
 
         if (isDataValid) {
           setHasRemoteData(true);
@@ -50,6 +59,14 @@ const App: React.FC = () => {
             console.log(`🚀 New version ${APP_VERSION} detected. Merging updates...`);
             const mergedData = {
               ...remoteData,
+              features: {
+                ...remoteData.features,
+                sectionSubtitle: remoteData?.features?.sectionSubtitle || INITIAL_CONTENT.features.sectionSubtitle
+              },
+              process: {
+                ...remoteData.process,
+                sectionSubtitle: remoteData?.process?.sectionSubtitle || INITIAL_CONTENT.process.sectionSubtitle
+              },
               testimonials: INITIAL_CONTENT.testimonials,
               gallery: INITIAL_CONTENT.gallery
             };
@@ -84,7 +101,6 @@ const App: React.FC = () => {
     initData();
   }, []);
 
-  const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState('');
