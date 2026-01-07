@@ -12,13 +12,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 
 export const fetchRemoteContent = async (): Promise<LandingPageContent | null> => {
+    // Fail fast if no credentials
+    if (!supabaseUrl || !supabaseAnonKey) return null;
+
     try {
         const { data, error } = await supabase
             .from('site_content')
             .select('content')
             .order('updated_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle(); // maybeSingle doesn't error on 0 rows
 
         if (error) {
             console.error('Error fetching remote content:', error);
@@ -32,23 +35,36 @@ export const fetchRemoteContent = async (): Promise<LandingPageContent | null> =
 };
 
 export const saveRemoteContent = async (content: LandingPageContent) => {
+    if (!supabaseUrl || !supabaseAnonKey) return;
+
     try {
-        // Get the first record's ID to update, or just insert if empty
-        const { data: existing } = await supabase
+        // Try to get ANY existing record ID
+        const { data: records, error: fetchError } = await supabase
             .from('site_content')
             .select('id')
-            .limit(1)
-            .single();
+            .limit(1);
 
-        if (existing?.id) {
-            await supabase
+        if (fetchError) {
+            console.error('Fetch error during save:', fetchError);
+        }
+
+        const existingId = records && records.length > 0 ? records[0].id : null;
+
+        if (existingId) {
+            const { error: updateError } = await supabase
                 .from('site_content')
                 .update({ content, updated_at: new Date().toISOString() })
-                .eq('id', existing.id);
+                .eq('id', existingId);
+
+            if (updateError) console.error('Update error:', updateError);
+            else console.log('✅ Remote content updated');
         } else {
-            await supabase
+            const { error: insertError } = await supabase
                 .from('site_content')
                 .insert([{ content, updated_at: new Date().toISOString() }]);
+
+            if (insertError) console.error('Insert error:', insertError);
+            else console.log('✅ Remote content initialized');
         }
     } catch (err) {
         console.error('Remote save failed:', err);

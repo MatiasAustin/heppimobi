@@ -164,7 +164,7 @@ export const INITIAL_CONTENT: LandingPageContent = {
         "name": "Budi Santoso",
         "role": "Pengusaha",
         "content": "Lampu mobil saya yang tadinya buram sekarang jadi bening banget kayak baru. Pelayanan Heppimobi jempolan!",
-        "avatarUrl": "https://i.pravatar.cc/150?u=budi",
+        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&auto=format&fit=crop",
         "rating": 5
       },
       {
@@ -172,7 +172,7 @@ export const INITIAL_CONTENT: LandingPageContent = {
         "name": "Siska Putri",
         "role": "Ibu Rumah Tangga",
         "content": "Pengerjaannya cepat dan hasilnya memuaskan. Sekarang berkendara malam hari jadi lebih aman karena lampu terang.",
-        "avatarUrl": "https://i.pravatar.cc/150?u=siska",
+        "avatarUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&h=150&auto=format&fit=crop",
         "rating": 5
       },
       {
@@ -180,8 +180,32 @@ export const INITIAL_CONTENT: LandingPageContent = {
         "name": "Andi Wijaya",
         "role": "Marketing",
         "content": "Harga yang ditawarkan sangat kompetitif dibandingkan tempat lain, tapi kualitasnya jauh lebih baik. Recommended!",
-        "avatarUrl": "https://i.pravatar.cc/150?u=andi",
+        "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&h=150&auto=format&fit=crop",
         "rating": 4
+      },
+      {
+        "id": "4",
+        "name": "Linda Wijaya",
+        "role": "Arsitek",
+        "content": "Sangat detail pengerjaannya. Headlight coating-nya tahan lama dan mobil kelihatan mewah lagi.",
+        "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop",
+        "rating": 5
+      },
+      {
+        "id": "5",
+        "name": "Roni Pratama",
+        "role": "Pegawai Swasta",
+        "content": "Prosesnya cepat dan edukatif. Teknisi menjelaskan detail proses nano burn-nya. Keren!",
+        "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&h=150&auto=format&fit=crop",
+        "rating": 5
+      },
+      {
+        "id": "6",
+        "name": "Diana Putri",
+        "role": "Karyawan",
+        "content": "Lampu kuning-kuning hilang semua. Keren banget hasilnya, pengerjaan rapi sekali.",
+        "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&h=150&auto=format&fit=crop",
+        "rating": 5
       }
     ],
     "visible": true

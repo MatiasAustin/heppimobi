@@ -9,7 +9,7 @@ import { Lock, LogOut, Info } from 'lucide-react';
 import { fetchRemoteContent, saveRemoteContent } from './lib/supabase.ts';
 
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 
 const App: React.FC = () => {
   const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
@@ -19,23 +19,41 @@ const App: React.FC = () => {
   useEffect(() => {
     const initData = async () => {
       setIsLoading(true);
+
+      // Fail-safe: pastikan loading berhenti setelah 3 detik apapun yang terjadi
+      const failSafe = setTimeout(() => {
+        setIsLoading(false);
+      }, 3000);
+
       try {
         const remoteData = await fetchRemoteContent();
-        if (remoteData) {
+        const isDataValid = remoteData && remoteData.branding && remoteData.hero;
+
+        if (isDataValid) {
           setContent(remoteData);
           // Sync local storage with latest remote data
           localStorage.setItem('heppimobi_content', JSON.stringify(remoteData));
         } else {
-          // Fallback to local if remote fails or empty
+          // Fallback to local if remote fails or empty/invalid
           const saved = localStorage.getItem('heppimobi_content');
           const savedVersion = localStorage.getItem('heppimobi_version');
+
+          let localContent = INITIAL_CONTENT;
           if (saved && savedVersion === APP_VERSION) {
-            setContent(JSON.parse(saved));
+            localContent = JSON.parse(saved);
           }
+
+          setContent(localContent);
+
+          // CRITICAL: Push local data to Supabase if remote was empty/invalid
+          // This initializes the cloud DB with our existing data
+          console.log("☁️ Supabase empty/invalid. Initializing with local data...");
+          saveRemoteContent(localContent);
         }
       } catch (err) {
         console.error("Initial load failed", err);
       } finally {
+        clearTimeout(failSafe);
         setIsLoading(false);
       }
     };
