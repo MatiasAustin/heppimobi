@@ -27,6 +27,21 @@ export interface Step {
   description: string;
 }
 
+export interface GalleryImage {
+  id: string;
+  url: string;
+  alt: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  avatarUrl: string;
+  rating: number;
+}
+
 export interface AnalyticsData {
   totalVisits: number;
   uniqueVisits: number;
@@ -84,6 +99,18 @@ export interface LandingPageContent {
     tagline: string;
     contact: string;
     address: string;
+    visible: boolean;
+  };
+  gallery: {
+    sectionTitle: string;
+    sectionSubtitle: string;
+    images: GalleryImage[];
+    visible: boolean;
+  };
+  testimonials: {
+    sectionTitle: string;
+    sectionSubtitle: string;
+    items: Testimonial[];
     visible: boolean;
   };
   analytics: AnalyticsData;

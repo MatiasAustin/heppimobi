@@ -97,14 +97,14 @@ const Hero: React.FC<HeroProps> = (props) => {
                 <p className="text-[9px] md:text-xs font-black text-slate-900 leading-tight uppercase tracking-wider">{props.badgeWarranty}</p>
               </div>
 
-              <div className="absolute top-0 -right-4 md:top-4 md:-right-20 glass-card w-50 p-4 md:p-5 rounded-[2rem] shadow-2xl border-white/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
+              <div className="absolute top-0 -right-8 md:top-[-40px] md:-right-20 glass-card w-[220px] p-4 md:p-5 rounded-[2rem] shadow-2xl border-white/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex text-amber-400">
                     {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
                   </div>
                   <span className="text-[10px] font-black text-slate-900">{props.badgeRating}</span>
                 </div>
-                <p className="text-[9px] md:text-[10px] font-bold text-slate-400 italic leading-tight">{props.badgeTestimonial}</p>
+                <p className="text-[9px] md:text-[10px] font-bold text-gray-700 italic leading-tight">{props.badgeTestimonial}</p>
               </div>
             </div>
           </div>

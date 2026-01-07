@@ -7,6 +7,8 @@ import { Check, Settings, Layout, BarChart3, Image as ImageIcon, Palette, List, 
 import { AdminHero } from './admin/AdminHero.tsx';
 import { AdminPricing } from './admin/AdminPricing.tsx';
 import { AdminBranding } from './admin/AdminBranding.tsx';
+import { AdminGallery } from './admin/AdminGallery.tsx';
+import { AdminTestimonials } from './admin/AdminTestimonials.tsx';
 import { AnalyticsChart } from './admin/AnalyticsChart.tsx';
 import { StatCard, ImageUploadBox, InputField, TextAreaField, SectionToggle } from './admin/Shared.tsx';
 
@@ -17,7 +19,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ content, onUpdate, onExit }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'branding' | 'hero' | 'pricing' | 'features' | 'process' | 'cta' | 'footer' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'branding' | 'hero' | 'gallery' | 'testimonials' | 'pricing' | 'features' | 'process' | 'cta' | 'footer' | 'settings'>('dashboard');
   const [isCompressing, setIsCompressing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -26,7 +28,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ content, onUpdate, onExit }) =>
 
   const updateSection = (section: keyof LandingPageContent, data: any) => {
     onUpdate({ ...content, [section]: { ...content[section], ...data } });
-    setSaveStatus('idle'); 
+    setSaveStatus('idle');
   };
 
   const handleManualSave = () => {
@@ -57,6 +59,15 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
   const compressImage = (file: File, maxWidth = 1920, quality = 0.8, outputFormat = 'image/jpeg'): Promise<string> => {
     return new Promise((resolve, reject) => {
+      // Dynamic quality based on file size
+      let finalQuality = quality;
+      if (file.size > 5 * 1024 * 1024) { // > 5MB
+        finalQuality = 0.6; // More aggressive compression
+        console.log("📦 Large file detected (>5MB), applying aggressive compression...");
+      } else if (file.size > 2 * 1024 * 1024) { // > 2MB
+        finalQuality = 0.7;
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
@@ -66,21 +77,32 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          if (width > maxWidth) {
-            height = (maxWidth / width) * height;
-            width = maxWidth;
+
+          // Downscale if too large
+          const maxDim = maxWidth;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = (maxDim / width) * height;
+              width = maxDim;
+            } else {
+              width = (maxDim / height) * width;
+              height = maxDim;
+            }
           }
+
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+
           if (outputFormat === 'image/png') {
             ctx?.clearRect(0, 0, width, height);
           } else if (ctx) {
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, width, height);
           }
+
           ctx?.drawImage(img, 0, 0, width, height);
-          const result = canvas.toDataURL(outputFormat, quality);
+          const result = canvas.toDataURL(outputFormat, finalQuality);
           resolve(result);
         };
         img.onerror = reject;
@@ -96,7 +118,29 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
     try {
       const isBranding = target.startsWith('branding');
       const outputFormat = (file.type === 'image/png' || isBranding) ? 'image/png' : 'image/jpeg';
-      const compressed = await compressImage(file, target.includes('hero') ? 1600 : 800, 0.8, outputFormat);
+
+      // Auto-scale based on target
+      let targetWidth = 1200;
+      if (target.includes('hero')) targetWidth = 1920;
+      if (target.includes('avatar')) targetWidth = 400;
+
+      const compressed = await compressImage(file, targetWidth, 0.8, outputFormat);
+
+      // Special handling for nested arrays (Gallery, Testimonials)
+      if (target.startsWith('gallery-image-')) {
+        const id = target.replace('gallery-image-', '');
+        const newImages = content.gallery.images.map(img => img.id === id ? { ...img, url: compressed } : img);
+        updateSection('gallery', { images: newImages });
+        return;
+      }
+
+      if (target.startsWith('testimonial-avatar-')) {
+        const id = target.replace('testimonial-avatar-', '');
+        const newItems = content.testimonials.items.map(item => item.id === id ? { ...item, avatarUrl: compressed } : item);
+        updateSection('testimonials', { items: newItems });
+        return;
+      }
+
       const parts = target.split('.');
       if (parts.length === 2) {
         const [section, field] = parts;
@@ -114,6 +158,8 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
     { id: 'dashboard', label: 'Stats', icon: BarChart3 },
     { id: 'branding', label: 'Brand', icon: Palette },
     { id: 'hero', label: 'Hero', icon: ImageIcon },
+    { id: 'gallery', label: 'Gallery', icon: ImageIcon },
+    { id: 'testimonials', label: 'Reviews', icon: MessageSquare },
     { id: 'features', label: 'About', icon: Info },
     { id: 'pricing', label: 'Layanan', icon: Layout },
     { id: 'process', label: 'Proses', icon: List },
@@ -127,49 +173,48 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
       {/* EXPORT MODAL */}
       {showExportModal && (
         <div className="fixed inset-0 z-[99999] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-black text-slate-900">Export for Vercel</h3>
-                        <p className="text-xs text-slate-400 font-bold mt-1">Make your changes permanent</p>
-                    </div>
-                    <button onClick={() => setShowExportModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <X className="w-6 h-6 text-slate-400" />
-                    </button>
-                </div>
-                
-                <div className="p-6 overflow-y-auto flex-1 bg-slate-50 space-y-6">
-                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
-                        <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-800 leading-relaxed">
-                            <p className="font-bold mb-1">How to save permanently:</p>
-                            <ol className="list-decimal ml-4 space-y-1 text-xs">
-                                <li>Click <strong>Copy Code</strong> below.</li>
-                                <li>Open <code>constants.ts</code> in your project folder.</li>
-                                <li>Replace <strong>ALL</strong> content in that file with the copied code.</li>
-                                <li>Commit & Push to GitHub to trigger Vercel deploy.</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div className="relative group">
-                        <div className="absolute right-4 top-4">
-                            <button 
-                                onClick={handleCopyToClipboard}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                    copyStatus ? 'bg-green-500 text-white' : 'bg-slate-900 text-white hover:bg-red-600'
-                                }`}
-                            >
-                                {copyStatus ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                {copyStatus ? 'Copied!' : 'Copy Code'}
-                            </button>
-                        </div>
-                        <pre className="bg-slate-900 text-slate-300 p-6 rounded-2xl text-[10px] md:text-xs overflow-x-auto font-mono leading-relaxed h-64 md:h-80 border border-slate-800">
-                            {generateExportCode()}
-                        </pre>
-                    </div>
-                </div>
+          <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Export for Vercel</h3>
+                <p className="text-xs text-slate-400 font-bold mt-1">Make your changes permanent</p>
+              </div>
+              <button onClick={() => setShowExportModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <X className="w-6 h-6 text-slate-400" />
+              </button>
             </div>
+
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50 space-y-6">
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
+                <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800 leading-relaxed">
+                  <p className="font-bold mb-1">How to save permanently:</p>
+                  <ol className="list-decimal ml-4 space-y-1 text-xs">
+                    <li>Click <strong>Copy Code</strong> below.</li>
+                    <li>Open <code>constants.ts</code> in your project folder.</li>
+                    <li>Replace <strong>ALL</strong> content in that file with the copied code.</li>
+                    <li>Commit & Push to GitHub to trigger Vercel deploy.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute right-4 top-4">
+                  <button
+                    onClick={handleCopyToClipboard}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${copyStatus ? 'bg-green-500 text-white' : 'bg-slate-900 text-white hover:bg-red-600'
+                      }`}
+                  >
+                    {copyStatus ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copyStatus ? 'Copied!' : 'Copy Code'}
+                  </button>
+                </div>
+                <pre className="bg-slate-900 text-slate-300 p-6 rounded-2xl text-[10px] md:text-xs overflow-x-auto font-mono leading-relaxed h-64 md:h-80 border border-slate-800">
+                  {generateExportCode()}
+                </pre>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -183,9 +228,9 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
             <p className="text-[8px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Management System</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2 md:gap-4">
-          <button 
+          <button
             onClick={handleExport}
             className="hidden md:flex bg-red-50 text-red-600 border border-red-100 px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] shadow-sm hover:bg-red-600 hover:text-white transition-all items-center gap-2 active:scale-95"
           >
@@ -193,11 +238,10 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
             Export Config
           </button>
 
-          <button 
-            onClick={handleManualSave} 
-            className={`px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] transition-all flex items-center gap-2 active:scale-95 ${
-              saveStatus === 'saved' ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+          <button
+            onClick={handleManualSave}
+            className={`px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] transition-all flex items-center gap-2 active:scale-95 ${saveStatus === 'saved' ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
           >
             {saveStatus === 'saving' ? (
               <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -208,13 +252,13 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
             )}
             <span className="hidden sm:inline">{saveStatus === 'saved' ? 'Data Saved' : 'Save Changes'}</span>
           </button>
-          
+
           <button onClick={onExit} className="bg-slate-900 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] shadow-lg hover:bg-red-600 transition-all flex items-center gap-2 active:scale-95">
             <LogOut className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden sm:inline">Close Panel</span>
           </button>
         </div>
       </header>
-      
+
       <div className="bg-slate-50 border-b border-slate-100 sticky top-[60px] md:top-[72px] z-[90]">
         <div ref={scrollRef} className="flex overflow-x-auto no-scrollbar scroll-smooth px-2">
           {tabs.map(tab => (
@@ -228,18 +272,18 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
       <main className="flex-1 p-5 md:p-12 max-w-7xl mx-auto w-full overflow-y-auto pb-32">
         <div className="max-w-4xl mx-auto space-y-12">
-          
+
           {activeTab === 'dashboard' && (
             <div className="space-y-12 animate-in fade-in duration-300">
-               {/* Mobile Export Button */}
+              {/* Mobile Export Button */}
               <div className="md:hidden">
-                 <button 
-                    onClick={handleExport}
-                    className="w-full bg-red-50 text-red-600 border border-red-100 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
-                 >
-                    <Download className="w-4 h-4" />
-                    Export Config for Vercel
-                 </button>
+                <button
+                  onClick={handleExport}
+                  className="w-full bg-red-50 text-red-600 border border-red-100 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Config for Vercel
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8">
@@ -248,15 +292,15 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
                 <StatCard label="Daily Today" value={content.analytics.dailyStats[new Date().toISOString().split('T')[0]] || 0} sub="Real-time" />
               </div>
 
-              <AnalyticsChart 
-                dailyStats={content.analytics.dailyStats} 
-                accentColor={content.branding.accentColor} 
+              <AnalyticsChart
+                dailyStats={content.analytics.dailyStats}
+                accentColor={content.branding.accentColor}
               />
             </div>
           )}
 
           {activeTab === 'branding' && (
-            <AdminBranding 
+            <AdminBranding
               content={content.branding}
               updateBranding={(data) => updateSection('branding', data)}
               handleFileUpload={handleFileUpload}
@@ -265,89 +309,107 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
           )}
 
           {activeTab === 'hero' && (
-            <AdminHero 
-              content={content.hero} 
-              updateHero={(data) => updateSection('hero', data)} 
-              handleFileUpload={handleFileUpload} 
-              isCompressing={isCompressing} 
+            <AdminHero
+              content={content.hero}
+              updateHero={(data) => updateSection('hero', data)}
+              handleFileUpload={handleFileUpload}
+              isCompressing={isCompressing}
+            />
+          )}
+
+          {activeTab === 'gallery' && (
+            <AdminGallery
+              content={content.gallery}
+              updateGallery={(data) => updateSection('gallery', data)}
+              handleFileUpload={handleFileUpload}
+              isCompressing={isCompressing}
+            />
+          )}
+
+          {activeTab === 'testimonials' && (
+            <AdminTestimonials
+              content={content.testimonials}
+              updateTestimonials={(data) => updateSection('testimonials', data)}
+              handleFileUpload={handleFileUpload}
+              isCompressing={isCompressing}
             />
           )}
 
           {activeTab === 'pricing' && (
-            <AdminPricing 
-              packages={content.pricing.packages} 
-              updatePackages={(pkgs) => updateSection('pricing', { packages: pkgs })} 
+            <AdminPricing
+              packages={content.pricing.packages}
+              updatePackages={(pkgs) => updateSection('pricing', { packages: pkgs })}
             />
           )}
 
           {activeTab === 'features' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-               <InputField label="Section Title" value={content.features.sectionTitle} onChange={(v) => updateSection('features', { sectionTitle: v })} />
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 {content.features.items.map(item => (
-                   <div key={item.id} className="p-6 border-2 border-slate-100 rounded-3xl space-y-4">
-                     <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center"><Zap className="w-5 h-5 text-slate-400" /></div>
-                     <InputField label="Title" value={item.title} onChange={(v) => {
-                        const updated = content.features.items.map(f => f.id === item.id ? { ...f, title: v } : f);
-                        updateSection('features', { items: updated });
-                     }} />
-                     <TextAreaField label="Description" value={item.description} onChange={(v) => {
-                        const updated = content.features.items.map(f => f.id === item.id ? { ...f, description: v } : f);
-                        updateSection('features', { items: updated });
-                     }} />
-                   </div>
-                 ))}
-               </div>
+              <InputField label="Section Title" value={content.features.sectionTitle} onChange={(v) => updateSection('features', { sectionTitle: v })} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {content.features.items.map(item => (
+                  <div key={item.id} className="p-6 border-2 border-slate-100 rounded-3xl space-y-4">
+                    <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center"><Zap className="w-5 h-5 text-slate-400" /></div>
+                    <InputField label="Title" value={item.title} onChange={(v) => {
+                      const updated = content.features.items.map(f => f.id === item.id ? { ...f, title: v } : f);
+                      updateSection('features', { items: updated });
+                    }} />
+                    <TextAreaField label="Description" value={item.description} onChange={(v) => {
+                      const updated = content.features.items.map(f => f.id === item.id ? { ...f, description: v } : f);
+                      updateSection('features', { items: updated });
+                    }} />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === 'process' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-               <InputField label="Section Title" value={content.process.sectionTitle} onChange={(v) => updateSection('process', { sectionTitle: v })} />
-               <div className="space-y-4">
-                 {content.process.steps.map((step, idx) => (
-                   <div key={step.id} className="p-6 border-2 border-slate-100 rounded-3xl flex flex-col md:flex-row gap-6">
-                      <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black flex-shrink-0">{idx + 1}</div>
-                      <div className="flex-grow space-y-4">
-                        <InputField label="Step Title" value={step.title} onChange={(v) => {
-                           const updated = content.process.steps.map(s => s.id === step.id ? { ...s, title: v } : s);
-                           updateSection('process', { steps: updated });
-                        }} />
-                        <TextAreaField label="Description" value={step.description} onChange={(v) => {
-                           const updated = content.process.steps.map(s => s.id === step.id ? { ...s, description: v } : s);
-                           updateSection('process', { steps: updated });
-                        }} />
-                      </div>
-                   </div>
-                 ))}
-               </div>
+              <InputField label="Section Title" value={content.process.sectionTitle} onChange={(v) => updateSection('process', { sectionTitle: v })} />
+              <div className="space-y-4">
+                {content.process.steps.map((step, idx) => (
+                  <div key={step.id} className="p-6 border-2 border-slate-100 rounded-3xl flex flex-col md:flex-row gap-6">
+                    <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black flex-shrink-0">{idx + 1}</div>
+                    <div className="flex-grow space-y-4">
+                      <InputField label="Step Title" value={step.title} onChange={(v) => {
+                        const updated = content.process.steps.map(s => s.id === step.id ? { ...s, title: v } : s);
+                        updateSection('process', { steps: updated });
+                      }} />
+                      <TextAreaField label="Description" value={step.description} onChange={(v) => {
+                        const updated = content.process.steps.map(s => s.id === step.id ? { ...s, description: v } : s);
+                        updateSection('process', { steps: updated });
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === 'cta' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-               <InputField label="Headline" value={content.cta.headline} onChange={(v) => updateSection('cta', { headline: v })} />
-               <TextAreaField label="Subheadline" value={content.cta.subheadline} onChange={(v) => updateSection('cta', { subheadline: v })} />
-               <InputField label="Button Text" value={content.cta.buttonText} onChange={(v) => updateSection('cta', { buttonText: v })} />
-               <InputField label="WhatsApp (e.g. 628...)" value={content.cta.whatsappNumber} onChange={(v) => updateSection('cta', { whatsappNumber: v })} />
+              <InputField label="Headline" value={content.cta.headline} onChange={(v) => updateSection('cta', { headline: v })} />
+              <TextAreaField label="Subheadline" value={content.cta.subheadline} onChange={(v) => updateSection('cta', { subheadline: v })} />
+              <InputField label="Button Text" value={content.cta.buttonText} onChange={(v) => updateSection('cta', { buttonText: v })} />
+              <InputField label="WhatsApp (e.g. 628...)" value={content.cta.whatsappNumber} onChange={(v) => updateSection('cta', { whatsappNumber: v })} />
             </div>
           )}
 
           {activeTab === 'footer' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-               <InputField label="Tagline" value={content.footer.tagline} onChange={(v) => updateSection('footer', { tagline: v })} />
-               <InputField label="Contact" value={content.footer.contact} onChange={(v) => updateSection('footer', { contact: v })} />
-               <InputField label="Address" value={content.footer.address} onChange={(v) => updateSection('footer', { address: v })} />
+              <InputField label="Tagline" value={content.footer.tagline} onChange={(v) => updateSection('footer', { tagline: v })} />
+              <InputField label="Contact" value={content.footer.contact} onChange={(v) => updateSection('footer', { contact: v })} />
+              <InputField label="Address" value={content.footer.address} onChange={(v) => updateSection('footer', { address: v })} />
             </div>
           )}
 
           {activeTab === 'settings' && (
             <div className="space-y-10 animate-in fade-in duration-300">
               <InputField label="Master Password" value={content.adminConfig.password} onChange={(v) => updateSection('adminConfig', { password: v })} />
-              <SectionToggle 
-                label="Show Admin Access Button" 
-                checked={content.adminConfig.showAdminButton} 
-                onChange={(v) => updateSection('adminConfig', { showAdminButton: v })} 
+              <SectionToggle
+                label="Show Admin Access Button"
+                checked={content.adminConfig.showAdminButton}
+                onChange={(v) => updateSection('adminConfig', { showAdminButton: v })}
                 description="Matikan opsi ini jika sudah tidak dalam masa maintenance untuk menjaga kerapihan tampilan publik. Anda tetap bisa masuk lewat URL /?admin=true."
               />
             </div>

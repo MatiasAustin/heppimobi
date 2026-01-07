@@ -6,21 +6,41 @@ import { LandingPageContent } from './types.ts';
 import { INITIAL_CONTENT } from './constants.ts';
 import { Lock, LogOut, Info } from 'lucide-react';
 
+import { fetchRemoteContent, saveRemoteContent } from './lib/supabase.ts';
+
 // Tingkatkan versi ini setiap kali Anda mengubah constants.ts dan ingin user melihat perubahannya
-const APP_VERSION = '1.1.0'; 
+const APP_VERSION = '1.2.0';
 
 const App: React.FC = () => {
-  const [content, setContent] = useState<LandingPageContent>(() => {
-    const saved = localStorage.getItem('heppimobi_content');
-    const savedVersion = localStorage.getItem('heppimobi_version');
-    
-    // Jika versi berbeda atau tidak ada data tersimpan, gunakan INITIAL_CONTENT baru
-    if (saved && savedVersion === APP_VERSION) {
-      return JSON.parse(saved);
-    } else {
-      return INITIAL_CONTENT;
-    }
-  });
+  const [content, setContent] = useState<LandingPageContent>(INITIAL_CONTENT);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Status sinkronisasi (remote vs local)
+  useEffect(() => {
+    const initData = async () => {
+      setIsLoading(true);
+      try {
+        const remoteData = await fetchRemoteContent();
+        if (remoteData) {
+          setContent(remoteData);
+          // Sync local storage with latest remote data
+          localStorage.setItem('heppimobi_content', JSON.stringify(remoteData));
+        } else {
+          // Fallback to local if remote fails or empty
+          const saved = localStorage.getItem('heppimobi_content');
+          const savedVersion = localStorage.getItem('heppimobi_version');
+          if (saved && savedVersion === APP_VERSION) {
+            setContent(JSON.parse(saved));
+          }
+        }
+      } catch (err) {
+        console.error("Initial load failed", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initData();
+  }, []);
 
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,15 +59,20 @@ const App: React.FC = () => {
   useEffect(() => {
     // Simpan versi saat ini ke localStorage
     localStorage.setItem('heppimobi_version', APP_VERSION);
-    
-    if (isAdminMode) return;
+
+    // Jangan hitung jika dalam mode admin, sudah ter-autentikasi, atau device ini pernah login admin
+    const isPersistentAdmin = localStorage.getItem('heppimobi_is_admin') === 'true';
+    if (isAdminMode || isAuthenticated || isPersistentAdmin) return;
+
+    if (isLoading) return; // Tunggu data ter-load dulu
+
     const today = new Date().toISOString().split('T')[0];
     const isNewVisit = !sessionStorage.getItem('heppimobi_visited');
-    
+
     setContent(prev => {
       const newDailyStats = { ...prev.analytics.dailyStats };
       newDailyStats[today] = (newDailyStats[today] || 0) + 1;
-      
+
       return {
         ...prev,
         analytics: {
@@ -59,10 +84,16 @@ const App: React.FC = () => {
       };
     });
     sessionStorage.setItem('heppimobi_visited', 'true');
-  }, [isAdminMode]);
+  }, [isAdminMode, isAuthenticated, isLoading]);
 
+  // Handle Auto-Save to Local and Remote
   useEffect(() => {
+    if (isLoading) return;
+
+    // Always save local first for speed
     localStorage.setItem('heppimobi_content', JSON.stringify(content));
+
+    // Favicon update
     if (content.branding.faviconUrl) {
       const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
       if (link) {
@@ -74,7 +105,14 @@ const App: React.FC = () => {
         document.head.appendChild(newLink);
       }
     }
-  }, [content]);
+
+    // Debounced remote save (only if changes happen)
+    const timer = setTimeout(() => {
+      saveRemoteContent(content);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [content, isLoading]);
 
   const handleUpdateContent = (newContent: LandingPageContent) => {
     setContent(newContent);
@@ -84,6 +122,7 @@ const App: React.FC = () => {
     e.preventDefault();
     if (passwordInput === content.adminConfig.password) {
       setIsAuthenticated(true);
+      localStorage.setItem('heppimobi_is_admin', 'true'); // Tandai device ini sebagai admin agar tidak terhitung di analytics
       setError('');
     } else {
       setError('Password salah!');
@@ -100,6 +139,28 @@ const App: React.FC = () => {
     setIsAdminMode(false);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+        <div className="relative mb-12">
+          <div className="w-24 h-24 border-[6px] border-slate-100 border-t-red-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 bg-slate-900 rounded-2xl rotate-45 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-3">
+            <span className="relative">
+              Heppimobi
+              <span className="absolute -bottom-1 left-0 w-full h-1 bg-red-600/20"></span>
+            </span>
+          </h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Connecting to Cloud Sync...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isAdminMode && !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
@@ -111,7 +172,7 @@ const App: React.FC = () => {
           <p className="text-slate-500 text-center mb-8 text-sm">Masukkan password untuk mengelola Heppimobi</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <input 
+              <input
                 type="password"
                 placeholder="Password"
                 className="w-full px-6 py-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-red-100 focus:border-red-600 outline-none transition-all text-center"
@@ -165,8 +226,8 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <button 
-                onClick={() => setIsAdminMode(true)} 
+              <button
+                onClick={() => setIsAdminMode(true)}
                 className="w-12 h-12 bg-slate-900/10 hover:bg-slate-900 text-slate-400 hover:text-white rounded-full shadow-sm hover:shadow-xl transition-all flex items-center justify-center backdrop-blur relative"
               >
                 <Lock className="w-5 h-5" />

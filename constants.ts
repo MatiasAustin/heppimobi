@@ -140,6 +140,52 @@ export const INITIAL_CONTENT: LandingPageContent = {
     "address": "Jabodetabek Area",
     "visible": true
   },
+  "gallery": {
+    "sectionTitle": "Gallery Hasil Kerja",
+    "sectionSubtitle": "Lihat transformasi mobil yang telah kami kerjakan dengan teknologi terbaik.",
+    "images": [
+      { "id": "1", "url": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800", "alt": "Porsche 911" },
+      { "id": "2", "url": "https://images.unsplash.com/photo-1542362567-b05200f8024d?auto=format&fit=crop&q=80&w=800", "alt": "Supercar Headlight" },
+      { "id": "3", "url": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=800", "alt": "Chevrolet Corvette" },
+      { "id": "4", "url": "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=800", "alt": "Luxury Car" },
+      { "id": "5", "url": "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=800", "alt": "Sports Car Detail" },
+      { "id": "6", "url": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=800", "alt": "Classic Car" },
+      { "id": "7", "url": "https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&q=80&w=800", "alt": "Modern Automotive" },
+      { "id": "8", "url": "https://images.unsplash.com/photo-1493238544576-29150bef2953?auto=format&fit=crop&q=80&w=800", "alt": "Fast Car" }
+    ],
+    "visible": true
+  },
+  "testimonials": {
+    "sectionTitle": "Apa Kata Mereka?",
+    "sectionSubtitle": "Kepercayaan Anda adalah prioritas kami. Inilah pengalaman pelanggan kami.",
+    "items": [
+      {
+        "id": "1",
+        "name": "Budi Santoso",
+        "role": "Pengusaha",
+        "content": "Lampu mobil saya yang tadinya buram sekarang jadi bening banget kayak baru. Pelayanan Heppimobi jempolan!",
+        "avatarUrl": "https://i.pravatar.cc/150?u=budi",
+        "rating": 5
+      },
+      {
+        "id": "2",
+        "name": "Siska Putri",
+        "role": "Ibu Rumah Tangga",
+        "content": "Pengerjaannya cepat dan hasilnya memuaskan. Sekarang berkendara malam hari jadi lebih aman karena lampu terang.",
+        "avatarUrl": "https://i.pravatar.cc/150?u=siska",
+        "rating": 5
+      },
+      {
+        "id": "3",
+        "name": "Andi Wijaya",
+        "role": "Marketing",
+        "content": "Harga yang ditawarkan sangat kompetitif dibandingkan tempat lain, tapi kualitasnya jauh lebih baik. Recommended!",
+        "avatarUrl": "https://i.pravatar.cc/150?u=andi",
+        "rating": 4
+      }
+    ],
+    "visible": true
+  },
   "analytics": {
     "totalVisits": 3,
     "uniqueVisits": 2,
