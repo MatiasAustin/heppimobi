@@ -39,6 +39,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ content }) => {
       {content.features.visible && (
         <Features
           sectionTitle={content.features.sectionTitle}
+          sectionSubtitle={content.features.sectionSubtitle}
           items={content.features.items}
           accentColor={accentColor}
         />
@@ -57,6 +58,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ content }) => {
       {content.process.visible && (
         <Process
           sectionTitle={content.process.sectionTitle}
+          sectionSubtitle={content.process.sectionSubtitle}
           steps={content.process.steps}
           accentColor={accentColor}
         />

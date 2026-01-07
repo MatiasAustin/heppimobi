@@ -393,14 +393,19 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
           {activeTab === 'pricing' && (
             <AdminPricing
+              sectionTitle={content.pricing.sectionTitle}
+              sectionSubtitle={content.pricing.sectionSubtitle}
               packages={content.pricing.packages}
-              updatePackages={(pkgs) => updateSection('pricing', { packages: pkgs })}
+              updatePricing={(data) => updateSection('pricing', data)}
             />
           )}
 
           {activeTab === 'features' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-              <InputField label="Section Title" value={content.features.sectionTitle} onChange={(v) => updateSection('features', { sectionTitle: v })} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="Section Title" value={content.features.sectionTitle} onChange={(v) => updateSection('features', { sectionTitle: v })} />
+                <TextAreaField label="Section Subtitle" value={content.features.sectionSubtitle} onChange={(v) => updateSection('features', { sectionSubtitle: v })} />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {content.features.items.map(item => (
                   <div key={item.id} className="p-6 border-2 border-slate-100 rounded-3xl space-y-4">
@@ -421,7 +426,10 @@ export const INITIAL_CONTENT: LandingPageContent = ${JSON.stringify(content, nul
 
           {activeTab === 'process' && (
             <div className="space-y-10 animate-in fade-in duration-300">
-              <InputField label="Section Title" value={content.process.sectionTitle} onChange={(v) => updateSection('process', { sectionTitle: v })} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="Section Title" value={content.process.sectionTitle} onChange={(v) => updateSection('process', { sectionTitle: v })} />
+                <TextAreaField label="Section Subtitle" value={content.process.sectionSubtitle} onChange={(v) => updateSection('process', { sectionSubtitle: v })} />
+              </div>
               <div className="space-y-4">
                 {content.process.steps.map((step, idx) => (
                   <div key={step.id} className="p-6 border-2 border-slate-100 rounded-3xl flex flex-col md:flex-row gap-6">

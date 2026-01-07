@@ -5,11 +5,12 @@ import { Feature } from '../types.ts';
 
 interface FeaturesProps {
   sectionTitle: string;
+  sectionSubtitle: string;
   items: Feature[];
   accentColor: string;
 }
 
-const Features: React.FC<FeaturesProps> = ({ sectionTitle, items, accentColor }) => {
+const Features: React.FC<FeaturesProps> = ({ sectionTitle, sectionSubtitle, items, accentColor }) => {
   const iconMap: Record<string, any> = { Shield, Zap, Smile };
 
   return (
@@ -17,6 +18,7 @@ const Features: React.FC<FeaturesProps> = ({ sectionTitle, items, accentColor })
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="text-center mb-16 md:mb-20">
           <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">{sectionTitle}</h2>
+          <p className="mt-4 text-slate-500 font-medium text-sm md:text-base max-w-2xl mx-auto">{sectionSubtitle}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {items.map((item) => {

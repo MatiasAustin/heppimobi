@@ -80,11 +80,13 @@ export interface LandingPageContent {
   };
   features: {
     sectionTitle: string;
+    sectionSubtitle: string;
     items: Feature[];
     visible: boolean;
   };
   process: {
     sectionTitle: string;
+    sectionSubtitle: string;
     steps: Step[];
     visible: boolean;
   };

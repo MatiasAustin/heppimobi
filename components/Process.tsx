@@ -5,11 +5,12 @@ import { Step } from '../types.ts';
 
 interface ProcessProps {
   sectionTitle: string;
+  sectionSubtitle: string;
   steps: Step[];
   accentColor: string;
 }
 
-const Process: React.FC<ProcessProps> = ({ sectionTitle, steps, accentColor }) => {
+const Process: React.FC<ProcessProps> = ({ sectionTitle, sectionSubtitle, steps, accentColor }) => {
   const processIcons = [Search, Settings, ShieldCheck, ClipboardCheck];
 
   return (
@@ -24,7 +25,7 @@ const Process: React.FC<ProcessProps> = ({ sectionTitle, steps, accentColor }) =
               </h2>
             </div>
             <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-md">
-              Kami menerapkan standar pengerjaan tinggi yang terukur untuk memastikan setiap unit mendapatkan hasil restorasi terbaik layaknya mobil baru.
+              {sectionSubtitle}
             </p>
           </div>
           <div className="lg:col-span-7 relative">
@@ -36,13 +37,13 @@ const Process: React.FC<ProcessProps> = ({ sectionTitle, steps, accentColor }) =
                   <div key={step.id} className="relative pl-16 md:pl-20 group">
                     <div className="absolute left-0 top-0 z-10">
                       <div className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:border-red-100">
-                         <StepIcon className="w-5 h-5 md:w-6 md:h-6 transition-colors duration-500 group-hover:text-red-600 text-slate-400" />
+                        <StepIcon className="w-5 h-5 md:w-6 md:h-6 transition-colors duration-500 group-hover:text-red-600 text-slate-400" />
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Step 0{idx + 1}</span>
-                         <div className="h-[1px] w-8 bg-slate-50"></div>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Step 0{idx + 1}</span>
+                        <div className="h-[1px] w-8 bg-slate-50"></div>
                       </div>
                       <h4 className="text-lg md:text-xl font-black text-slate-900 tracking-tight group-hover:text-red-600 transition-colors">
                         {step.title}

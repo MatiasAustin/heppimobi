@@ -75,6 +75,7 @@ export const INITIAL_CONTENT: LandingPageContent = {
   },
   "features": {
     "sectionTitle": "Kenapa Memilih Kami?",
+    "sectionSubtitle": "Kami memberikan kualitas terbaik dengan standar profesional untuk kepuasan Anda.",
     "visible": true,
     "items": [
       {
@@ -99,6 +100,7 @@ export const INITIAL_CONTENT: LandingPageContent = {
   },
   "process": {
     "sectionTitle": "Work Process",
+    "sectionSubtitle": "Langkah-langkah profesional kami untuk mengembalikan kemilau lampu mobil Anda.",
     "visible": true,
     "steps": [
       {
