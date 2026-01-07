@@ -90,14 +90,14 @@ const Hero: React.FC<HeroProps> = (props) => {
                 <img src={props.imageUrl} alt="Headlight" className="w-full h-auto rounded-[2.5rem] md:rounded-[4rem] shadow-2xl transition-transform hover:scale-[1.01] duration-700" />
                 
                 {/* Floating Badges - Adjusted positions to be less intrusive */}
-                <div className="absolute -bottom-8 -left-6 md:-bottom-12 md:-left-16 glass-card p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-white/50 max-w-[130px] md:max-w-[180px] animate-bounce-slow">
+                <div className="absolute -bottom-4 -left-6 md:-bottom-12 md:-left-16 glass-card p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-white/50 max-w-[130px] md:max-w-[180px] animate-bounce-slow">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-white mb-3 md:mb-4 shadow-lg" style={{ backgroundColor: props.accentColor }}>
                         <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <p className="text-[9px] md:text-xs font-black text-slate-900 leading-tight uppercase tracking-wider">{props.badgeWarranty}</p>
                 </div>
 
-                <div className="absolute top-6 -right-4 md:top-12 md:-right-20 glass-card p-4 md:p-5 rounded-[2rem] shadow-2xl border-white/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
+                <div className="absolute top-0 -right-4 md:top-4 md:-right-20 glass-card w-50 p-4 md:p-5 rounded-[2rem] shadow-2xl border-white/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="flex text-amber-400">
                           {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
