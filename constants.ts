@@ -141,10 +141,10 @@ export const INITIAL_CONTENT: LandingPageContent = {
     "visible": true
   },
   "analytics": {
-    "totalVisits": 1,
-    "uniqueVisits": 1,
+    "totalVisits": 3,
+    "uniqueVisits": 2,
     "dailyStats": {
-      "2026-01-07": 1
+      "2026-01-07": 3
     },
     "lastReset": "2026-01-07T10:40:51.694Z"
   }
